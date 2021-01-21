@@ -633,6 +633,20 @@ class CharacterModel extends AbstractPathfinderModel {
         return $loginCheck;
     }
 
+    private function getWhiteListFromFile($filename) {
+        $arr = [];
+        if (file_exists($filename)) {
+            $f = new \SplFileObject($filename);
+            foreach($f as $line) {
+                $character_id = filter_var(trim($line), FILTER_VALIDATE_INT);
+                if (!is_null($character_id)) {
+                    array_push($arr, $character_id);
+                }
+            }
+        }
+        return $arr;
+    }
+
     /**
      * checks whether this character is authorized to log in
      * -> check corp/ally whitelist config (pathfinder.ini)
@@ -648,7 +662,10 @@ class CharacterModel extends AbstractPathfinderModel {
                 $whitelistCorporations = array_filter( array_map('trim', (array)Config::getPathfinderData('login.corporation') ) );
                 $whitelistAlliance = array_filter( array_map('trim', (array)Config::getPathfinderData('login.alliance') ) );
 
+                $whitelistCharacterFile = trim(Config::getPathfinderData('login.character_file'));
+                $whitelistCharacter = array_merge($whitelistCharacter, $this->getWhiteListFromFile($whitelistCharacterFile));
                 if(
+                    empty($whitelistCharacterFile) &&
                     empty($whitelistCharacter) &&
                     empty($whitelistCorporations) &&
                     empty($whitelistAlliance)
