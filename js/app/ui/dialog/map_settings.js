@@ -207,11 +207,6 @@ define([
                     corporationSelectId: config.corporationSelectId,
                     allianceSelectId: config.allianceSelectId,
 
-                    // access limitations --------
-                    maxCharacter: Init.mapTypes.private.defaultConfig.max_shared,
-                    maxCorporation: Init.mapTypes.corporation.defaultConfig.max_shared,
-                    maxAlliance: Init.mapTypes.alliance.defaultConfig.max_shared,
-
                     accessCharacter: [],
                     accessCorporation: [],
                     accessAlliance: [],
@@ -709,25 +704,11 @@ define([
     let initSettingsSelectFields = mapInfoDialog => {
 
         let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-        let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-        let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
         // init character select live search
         selectElementCharacter.initAccessSelect({
             type: 'character',
             maxSelectionLength: Init.mapTypes.private.defaultConfig.max_shared
-        });
-
-        // init corporation select live search
-        selectElementCorporation.initAccessSelect({
-            type: 'corporation',
-            maxSelectionLength: Init.mapTypes.corporation.defaultConfig.max_shared
-        });
-
-        // init alliance select live search
-        selectElementAlliance.initAccessSelect({
-            type: 'alliance',
-            maxSelectionLength: Init.mapTypes.alliance.defaultConfig.max_shared
         });
     };
 

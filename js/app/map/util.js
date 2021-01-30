@@ -84,27 +84,13 @@ define([
         let mapTypes = Object.assign({}, Init.mapTypes);
 
         if(filterByCharacter === true){
-            let authorizedMapTypes = [];
+            let authorizedMapTypes = ['private', 'shared'];
             let checkMapTypes = [
                 {type: 'private',       hasRight: false, selector: 'id'},
-                {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
-                {type: 'alliance',      hasRight: false,  selector: 'alliance.id'}
+                {type: 'shared',       hasRight: false, selector: 'shared.id'},
+                // {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
+                // {type: 'alliance',      hasRight: false,  selector: 'alliance.id'}
             ];
-
-            checkMapTypes.forEach(data => {
-                // check if current character is e.g. in alliance
-                if(Util.getCurrentCharacterData(data.selector)){
-                    // check if User could add new map with a mapType -> check map limit
-                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, data.selector));
-                    let maxCountObject = Util.getObjVal(mapTypes, `${data.type}.defaultConfig.max_count`);
-                    if(currentObjectMapData.length < maxCountObject){
-                        // check if character has the "right" for creating a map with this type
-                        if((data.hasRight && filterRight) ? Util.hasRight(filterRight, data.type) : true){
-                            authorizedMapTypes.push(data.type);
-                        }
-                    }
-                }
-            });
 
             mapTypes = Util.filterObjByKeys(mapTypes, authorizedMapTypes);
         }
