@@ -88,8 +88,6 @@ define([
             let checkMapTypes = [
                 {type: 'private',       hasRight: false, selector: 'id'},
                 {type: 'shared',       hasRight: false, selector: 'shared.id'},
-                // {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
-                // {type: 'alliance',      hasRight: false,  selector: 'alliance.id'}
             ];
 
             mapTypes = Util.filterObjByKeys(mapTypes, authorizedMapTypes);
@@ -1993,28 +1991,14 @@ define([
      * @returns {boolean}
      */
     let checkRight = (right, mapConfig) => {
-        let hasAccess = false;
-        let mapType = Util.getObjVal(mapConfig, 'type.name');
-        let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
-
-        // check whether character has map access
-        let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
-        let hasMapAccess = mapAccess.some(accessObj => accessObj.id === accessObjectId);
-        if(hasMapAccess){
-            // ... this should ALWAYS be be true!
-            switch(mapType){
-                case 'private':
-                    hasAccess = true;
-                    break;
-                case 'corporation':
-                    hasAccess = Util.hasRight(right, mapType);
-                    break;
-                case 'alliance':
-                    hasAccess = true;
-                    break;
-            }
+        let mapType = mapConfig?.type?.name;
+        if (mapType == 'private' && Util.getCurrentCharacterId() == mapConfig.created.character.id) {
+            return true;
         }
-        return hasAccess;
+        if (mapType == 'shared') {
+            return true;
+        }
+        return false;
     };
 
     /**

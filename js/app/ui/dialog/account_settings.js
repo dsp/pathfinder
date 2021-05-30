@@ -55,7 +55,6 @@ define([
                 ccpImageServer: Init.url.ccpImageServer,
                 roleLabel: Util.getLabelByRole(Util.getCurrentCharacterData('role')).prop('outerHTML'),
                 characterAutoLocationSelectEnabled: Boolean(Util.getObjVal(Init, 'character.autoLocationSelect')),
-                hasRightCorporationShare: Util.hasRight('map_share', 'corporation')
             };
 
             let content = Mustache.render(template, data);

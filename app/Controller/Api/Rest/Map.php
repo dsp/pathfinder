@@ -118,80 +118,8 @@ class Map extends AbstractRestController {
         $typeChange = $map->changed('typeId');
         $map->save($activeCharacter);
 
-        // save global map access. Depends on map "type" --------------------------------------------------------------
-        /**
-         * @param Pathfinder\AbstractPathfinderModel $primaryModel
-         * @param array|null                         $modelIds
-         * @param int                                $maxShared
-         * @return int
-         */
-        $setMapAccess = function(Pathfinder\AbstractPathfinderModel &$primaryModel, ?array $modelIds = [], int $maxShared = 3) use (&$map) : int {
-            $added = 0;
-            $deleted = 0;
-            if(is_array($modelIds)){
-                // remove primaryModel id (-> re-add later)
-                $modelIds = array_diff(array_map('intval', $modelIds), [$primaryModel->_id]);
-
-                // avoid abuse -> respect share limits (-1 is because the primaryModel has also access)
-                $modelIds = array_slice($modelIds, 0, max($maxShared - 1, 0));
-
-                // add the primaryModel id back (again)
-                $modelIds[] = $primaryModel->_id;
-
-                // clear map access for entities that do not match the map "mapType"
-                $deleted += $map->clearAccessByType();
-
-                $compare = $map->compareAccess($modelIds);
-
-                foreach((array)$compare['old'] as $modelId) {
-                    $deleted += $map->removeFromAccess($modelId);
-                }
-
-                $modelClass = (new \ReflectionClass($primaryModel))->getShortName();
-                $tempModel = Pathfinder\AbstractPathfinderModel::getNew($modelClass);
-                foreach((array)$compare['new'] as $modelId) {
-                    $tempModel->getById($modelId);
-                    if(
-                        $tempModel->valid() &&
-                        (
-                            $modelId == $primaryModel->_id ||   // primary model has always access (regardless of "shared" value)
-                            $tempModel->shared == 1             // check if map shared is enabled
-                        )
-                    ){
-                        $added += (int)$map->setAccess($tempModel);
-                    }
-
-                    $tempModel->reset();
-                }
-            }
-            return $added + $deleted;
-        };
-
         $accessChangeCount = 0;
         $mapDefaultConf = Config::getMapsDefaultConfig();
-        if($map->isPrivate()){
-            $accessChangeCount = $setMapAccess(
-                $activeCharacter,
-                $typeChange ? [$activeCharacter->_id] : $mapData['mapCharacters'],
-                (int)$mapDefaultConf['private']['max_shared']
-            );
-        }elseif($map->isCorporation()){
-            if($corporation = $activeCharacter->getCorporation()){
-                $accessChangeCount = $setMapAccess(
-                    $corporation,
-                    $typeChange ? [$corporation->_id] : $mapData['mapCorporations'],
-                    (int)$mapDefaultConf['corporation']['max_shared']
-                );
-            }
-        }elseif($map->isAlliance()){
-            if($alliance = $activeCharacter->getAlliance()){
-                $accessChangeCount = $setMapAccess(
-                    $alliance,
-                    $typeChange ? [$alliance->_id] : $mapData['mapAlliances'],
-                    (int)$mapDefaultConf['alliance']['max_shared']
-                );
-            }
-        }
 
         if($accessChangeCount){
             $map->touch('updated');

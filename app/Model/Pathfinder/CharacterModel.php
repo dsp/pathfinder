@@ -1308,16 +1308,10 @@ class CharacterModel extends AbstractPathfinderModel {
      * get all accessible map models for this character
      * @return MapModel[]
      */
-    public function getMaps() : array {
+    public function getMaps() {
         $maps = [];
 
-        if($alliance = $this->getAlliance()){
-            $maps = array_merge($maps, $alliance->getMaps());
-        }
-
-        if($corporation = $this->getCorporation()){
-            $maps = array_merge($maps,  $corporation->getMaps());
-        }
+        $maps = MapModel::getShared();
 
         if(is_object($this->characterMaps)){
             $mapCountPrivate = 0;

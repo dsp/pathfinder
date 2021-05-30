@@ -54,10 +54,6 @@ define([
         discordWebHookURLRallyId: 'pf-map-dialog-discord-url-rally',                    // id for Discord "rally" webHookUrl
         discordWebHookURLHistoryId: 'pf-map-dialog-discord-url-history',                // id for Discord "history" webHookUrl
 
-        characterSelectId: 'pf-map-dialog-character-select',                            // id for "character" select
-        corporationSelectId: 'pf-map-dialog-corporation-select',                        // id for "corporation" select
-        allianceSelectId: 'pf-map-dialog-alliance-select',                              // id for "alliance" select
-
         dialogMapExportFormId: 'pf-map-dialog-form-export',                             // id for "export" form
         dialogMapImportFormId: 'pf-map-dialog-form-import',                             // id for "import" form
 
@@ -117,7 +113,6 @@ define([
                 let hasRightMapUpdate = MapUtil ? MapUtil.checkRight('map_update', mapData.config) : true;
                 let hasRightMapExport = MapUtil ? MapUtil.checkRight('map_export', mapData.config) : true;
                 let hasRightMapImport = MapUtil ? MapUtil.checkRight('map_import', mapData.config) : true;
-                let hasRightMapShare  = MapUtil ? MapUtil.checkRight('map_share', mapData.config)  : true;
 
                 // available map "type" options data
                 // -> for "new" map tab
@@ -135,7 +130,6 @@ define([
                     hasRightMapUpdate,
                     hasRightMapExport,
                     hasRightMapImport,
-                    hasRightMapShare,
 
                     // message container
                     formErrorContainerClass: Util.config.formErrorContainerClass,
@@ -202,15 +196,6 @@ define([
                     discordHistoryEnabled: false,
                     discordSectionShow: false,
 
-                    // map access ----------------
-                    characterSelectId: config.characterSelectId,
-                    corporationSelectId: config.corporationSelectId,
-                    allianceSelectId: config.allianceSelectId,
-
-                    accessCharacter: [],
-                    accessCorporation: [],
-                    accessAlliance: [],
-
                     // download tab --------------
                     dialogMapExportFormId: config.dialogMapExportFormId,
                     dialogMapImportFormId: config.dialogMapImportFormId,
@@ -244,10 +229,6 @@ define([
                         discordWebHookURLRally: Util.getObjVal(mapData, 'config.logging.discordWebHookURLRally'),
                         discordWebHookURLHistory: Util.getObjVal(mapData, 'config.logging.discordWebHookURLHistory'),
                         discordEnabled: Boolean(Util.getObjVal(Init, 'discord.status')),
-
-                        accessCharacter: mapData.config.access.character,
-                        accessCorporation: mapData.config.access.corporation,
-                        accessAlliance: mapData.config.access.alliance
                     });
 
                     Object.assign(mapDialogData, {
@@ -592,30 +573,9 @@ define([
                     let modalDialog = mapInfoDialog.find('div.modal-dialog');
                     let tabContentId = $(e.target).attr('href');
                     let tabContentForms = $(tabContentId).find('form.form-horizontal');
-                    let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-                    let selectElementCorporation = mapInfoDialog.find('#' + config.corporationSelectId);
-                    let selectElementAlliance = mapInfoDialog.find('#' + config.allianceSelectId);
 
-                    if(tabContentId === '#' + config.dialogMapSettingsContainerId){
-                        // "settings" tab -> resize modal
-                        modalDialog.toggleClass('modal-lg', true);
-                        initSettingsSelectFields(mapInfoDialog);
-                    }else{
-                        // resize modal
-                        modalDialog.toggleClass('modal-lg', false);
-
-                        if( $(selectElementCharacter).data('select2') !== undefined ){
-                            $(selectElementCharacter).select2('destroy');
-                        }
-
-                        if( $(selectElementCorporation).data('select2') !== undefined ){
-                            $(selectElementCorporation).select2('destroy');
-                        }
-
-                        if( $(selectElementAlliance).data('select2') !== undefined ){
-                            $(selectElementAlliance).select2('destroy');
-                        }
-                    }
+                    // resize modal
+                    modalDialog.toggleClass('modal-lg', false);
 
                     // no "save" dialog  button on "in/export" tab
                     if(
@@ -695,21 +655,6 @@ define([
 
         element.attr('href', 'data:' + mapDataEncoded);
         element.attr('download', filename + '.json');
-    };
-
-    /**
-     * init select2 fields within the settings dialog
-     * @param mapInfoDialog
-     */
-    let initSettingsSelectFields = mapInfoDialog => {
-
-        let selectElementCharacter = mapInfoDialog.find('#' + config.characterSelectId);
-
-        // init character select live search
-        selectElementCharacter.initAccessSelect({
-            type: 'character',
-            maxSelectionLength: Init.mapTypes.private.defaultConfig.max_shared
-        });
     };
 
     /**
