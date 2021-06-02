@@ -84,27 +84,11 @@ define([
         let mapTypes = Object.assign({}, Init.mapTypes);
 
         if(filterByCharacter === true){
-            let authorizedMapTypes = [];
+            let authorizedMapTypes = ['private', 'shared'];
             let checkMapTypes = [
                 {type: 'private',       hasRight: false, selector: 'id'},
-                {type: 'corporation',   hasRight: true,  selector: 'corporation.id'},
-                {type: 'alliance',      hasRight: false,  selector: 'alliance.id'}
+                {type: 'shared',       hasRight: false, selector: 'shared.id'},
             ];
-
-            checkMapTypes.forEach(data => {
-                // check if current character is e.g. in alliance
-                if(Util.getCurrentCharacterData(data.selector)){
-                    // check if User could add new map with a mapType -> check map limit
-                    let currentObjectMapData = Util.filterCurrentMapData('config.type.id', Util.getObjVal(mapTypes, data.selector));
-                    let maxCountObject = Util.getObjVal(mapTypes, `${data.type}.defaultConfig.max_count`);
-                    if(currentObjectMapData.length < maxCountObject){
-                        // check if character has the "right" for creating a map with this type
-                        if((data.hasRight && filterRight) ? Util.hasRight(filterRight, data.type) : true){
-                            authorizedMapTypes.push(data.type);
-                        }
-                    }
-                }
-            });
 
             mapTypes = Util.filterObjByKeys(mapTypes, authorizedMapTypes);
         }
@@ -2007,28 +1991,14 @@ define([
      * @returns {boolean}
      */
     let checkRight = (right, mapConfig) => {
-        let hasAccess = false;
-        let mapType = Util.getObjVal(mapConfig, 'type.name');
-        let accessObjectId = Util.getCurrentUserInfo(mapType + 'Id');
-
-        // check whether character has map access
-        let mapAccess = Util.getObjVal(mapConfig, 'access.' + (mapType === 'private' ? 'character' : mapType)) || [];
-        let hasMapAccess = mapAccess.some(accessObj => accessObj.id === accessObjectId);
-        if(hasMapAccess){
-            // ... this should ALWAYS be be true!
-            switch(mapType){
-                case 'private':
-                    hasAccess = true;
-                    break;
-                case 'corporation':
-                    hasAccess = Util.hasRight(right, mapType);
-                    break;
-                case 'alliance':
-                    hasAccess = true;
-                    break;
-            }
+        let mapType = mapConfig?.type?.name;
+        if (mapType == 'private' && Util.getCurrentCharacterId() == mapConfig.created.character.id) {
+            return true;
         }
-        return hasAccess;
+        if (mapType == 'shared') {
+            return true;
+        }
+        return false;
     };
 
     /**

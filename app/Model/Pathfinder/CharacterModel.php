@@ -193,7 +193,7 @@ class CharacterModel extends AbstractPathfinderModel {
             'has-one' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterLogModel', 'characterId']
         ],
         'characterMaps' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterMapModel', 'characterId']
+            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\MapModel', 'createdCharacterId']
         ],
         'characterAuthentications' => [
             'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterAuthenticationModel', 'characterId']
@@ -1308,25 +1308,19 @@ class CharacterModel extends AbstractPathfinderModel {
      * get all accessible map models for this character
      * @return MapModel[]
      */
-    public function getMaps() : array {
+    public function getMaps() {
         $maps = [];
 
-        if($alliance = $this->getAlliance()){
-            $maps = array_merge($maps, $alliance->getMaps());
-        }
-
-        if($corporation = $this->getCorporation()){
-            $maps = array_merge($maps,  $corporation->getMaps());
-        }
+        $maps = MapModel::getShared();
 
         if(is_object($this->characterMaps)){
             $mapCountPrivate = 0;
             foreach($this->characterMaps as $characterMap){
                 if(
                     $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
-                    $characterMap->mapId->isActive()
+                    $characterMap->isActive()
                 ){
-                    $maps[] = $characterMap->mapId;
+                    $maps[] = $characterMap;
                     $mapCountPrivate++;
                 }
             }

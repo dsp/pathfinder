@@ -69,25 +69,11 @@ class MapTypeModel extends AbstractPathfinderModel {
         ],
         [
             'id' => 3,
-            'name' => 'corporation',
-            'label' => 'corporation',
+            'name' => 'shared',
+            'label' => 'shared',
             'class' => 'pf-map-type-corporation',
             'classTab' => 'pf-map-type-tab-corporation'
         ],
-        [
-            'id' => 4,
-            'name' => 'alliance',
-            'label' => 'alliance',
-            'class' => 'pf-map-type-alliance',
-            'classTab' => 'pf-map-type-tab-alliance'
-        ],
-        [
-            'id' => 5,
-            'name' => 'global',
-            'label' => 'global',
-            'class' => 'pf-map-type-global',
-            'classTab' => 'pf-map-type-tab-global'
-        ]
     ];
 
 } 

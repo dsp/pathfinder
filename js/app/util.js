@@ -298,7 +298,7 @@ define([
                 infoMessage.push(message);
             }
         }
-
+// /check
         if(errorMessage.length > 0){
             formElement.hideFormMessage('error', function(element){
                 $(element).find('small').html( errorMessage.join('<br>') );

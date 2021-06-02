@@ -150,6 +150,7 @@ define([
         let mapSystems = mapData.data.systems;
         let mapSystemCount = mapSystems.length;
         let mapTypeName = mapContainer.data('typeName');
+        console.log(Init.mapTypes);
         let maxAllowedSystems = Init.mapTypes[mapTypeName].defaultConfig.max_systems;
 
         // show error if system max count reached ---------------------------------------------------------------------

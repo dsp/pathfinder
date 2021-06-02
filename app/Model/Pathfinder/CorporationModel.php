@@ -134,9 +134,6 @@ class CorporationModel extends AbstractPathfinderModel {
         'corporationCharacters' => [
             'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterModel', 'corporationId']
         ],
-        'mapCorporations' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CorporationMapModel', 'corporationId']
-        ],
         'corporationRights' => [
             'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CorporationRightModel', 'corporationId']
         ],
@@ -187,39 +184,6 @@ class CorporationModel extends AbstractPathfinderModel {
         return parent::beforeUpdateEvent($self, $pkeys);
     }
 
-    /**
-     * get all maps for this corporation
-     * @param int|null $mapId
-     * @param array $options
-     * @return array
-     */
-    public function getMaps(?int $mapId = null, $options = []) : array {
-        $maps = [];
-        $this->filterRel();
-
-        if($mapId){
-            $filters = [
-                self::getFilter('mapId', $mapId)
-            ];
-
-            $this->filter('mapCorporations', $this->mergeWithRelFilter('mapCorporations', $this->mergeFilter($filters)), $this->getRelFilterOption('mapCorporations'));
-        }
-
-        if($this->mapCorporations){
-            $mapCount = 0;
-            foreach($this->mapCorporations as $mapCorporation){
-                $validActive = !$options['addInactive'] ? $mapCorporation->mapId->isActive() : true;
-                $validMapCount = !$options['ignoreMapCount'] ? $mapCount < Config::getMapsDefaultConfig('corporation')['max_count'] : true;
-
-                if($validActive && $validMapCount){
-                    $maps[] = $mapCorporation->mapId;
-                    $mapCount++;
-                }
-            }
-        }
-
-        return $maps;
-    }
 
     /**
      * get all characters in this corporation
@@ -389,7 +353,7 @@ class CorporationModel extends AbstractPathfinderModel {
      * @see parent
      */
     public function filterRel() : void {
-        $this->filter('mapCorporations', self::getFilter('active', true), ['order' => 'created']);
+        // $this->filter('mapCorporations', self::getFilter('active', true), ['order' => 'created']);
     }
 
     /**
