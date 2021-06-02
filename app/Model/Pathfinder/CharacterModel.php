@@ -1311,7 +1311,11 @@ class CharacterModel extends AbstractPathfinderModel {
     public function getMaps() {
         $maps = [];
 
-        $maps = MapModel::getShared();
+        foreach (MapModel::getShared() as $map) {
+            if ($map->isActive()) {
+                $maps[] = $map;
+            }
+        }
 
         if(is_object($this->characterMaps)){
             $mapCountPrivate = 0;
