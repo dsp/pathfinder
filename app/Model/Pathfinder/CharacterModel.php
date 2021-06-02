@@ -193,7 +193,7 @@ class CharacterModel extends AbstractPathfinderModel {
             'has-one' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterLogModel', 'characterId']
         ],
         'characterMaps' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterMapModel', 'characterId']
+            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\MapModel', 'createdCharacterId']
         ],
         'characterAuthentications' => [
             'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterAuthenticationModel', 'characterId']
@@ -1318,9 +1318,9 @@ class CharacterModel extends AbstractPathfinderModel {
             foreach($this->characterMaps as $characterMap){
                 if(
                     $mapCountPrivate < Config::getMapsDefaultConfig('private')['max_count'] &&
-                    $characterMap->mapId->isActive()
+                    $characterMap->isActive()
                 ){
-                    $maps[] = $characterMap->mapId;
+                    $maps[] = $characterMap;
                     $mapCountPrivate++;
                 }
             }

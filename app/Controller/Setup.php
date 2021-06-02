@@ -80,10 +80,6 @@ class Setup extends Controller {
                 'Model\Pathfinder\ConnectionScopeModel',
                 'Model\Pathfinder\StructureStatusModel',
 
-                'Model\Pathfinder\CharacterMapModel',
-                'Model\Pathfinder\AllianceMapModel',
-                'Model\Pathfinder\CorporationMapModel',
-
                 'Model\Pathfinder\CorporationRightModel',
                 'Model\Pathfinder\CorporationStructureModel',
 

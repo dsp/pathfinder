@@ -46,9 +46,6 @@ class AllianceModel extends AbstractPathfinderModel {
         'allianceCharacters' => [
             'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterModel', 'allianceId']
         ],
-        'mapAlliances' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\AllianceMapModel', 'allianceId']
-        ]
     ];
 
     /**
@@ -78,30 +75,6 @@ class AllianceModel extends AbstractPathfinderModel {
         $this->touch('updated');
 
         return parent::beforeUpdateEvent($self, $pkeys);
-    }
-
-    /**
-     * get all maps for this alliance
-     * @return array|mixed
-     */
-    public function getMaps(){
-        $maps = [];
-        $this->filterRel();
-
-        if($this->mapAlliances){
-            $mapCount = 0;
-            foreach($this->mapAlliances as $mapAlliance){
-                if(
-                    $mapAlliance->mapId->isActive() &&
-                    $mapCount < Config::getMapsDefaultConfig('alliance')['max_count']
-                ){
-                    $maps[] = $mapAlliance->mapId;
-                    $mapCount++;
-                }
-            }
-        }
-
-        return $maps;
     }
 
     /**
@@ -164,6 +137,5 @@ class AllianceModel extends AbstractPathfinderModel {
      * @see parent
      */
     public function filterRel() : void {
-        $this->filter('mapAlliances', self::getFilter('active', true), ['order' => 'created']);
     }
 }

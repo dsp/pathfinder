@@ -122,12 +122,6 @@ class MapModel extends AbstractMapTrackingModel {
             'default' => 0,
             'activity-log' => true
         ],
-        'shareMap' => [
-            'type' => Schema::DT_BOOL,
-            'nullable' => false,
-            'default' => 0,
-            'activity-log' => true
-        ],
         'slackWebHookURL' => [
             'type' => Schema::DT_VARCHAR128,
             'nullable' => false,
@@ -182,15 +176,6 @@ class MapModel extends AbstractMapTrackingModel {
         'connections' => [
             'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\ConnectionModel', 'mapId']
         ],
-        'mapCharacters' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CharacterMapModel', 'mapId']
-        ],
-        'mapCorporations' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\CorporationMapModel', 'mapId']
-        ],
-        'mapAlliances' => [
-            'has-many' => ['Exodus4D\Pathfinder\Model\Pathfinder\AllianceMapModel', 'mapId']
-        ]
     ];
 
     /**
@@ -672,53 +657,6 @@ class MapModel extends AbstractMapTrackingModel {
         return $structuresData;
     }
 
-    /**
-     * set map access for an object (character, corporation or alliance)
-     * @param $obj
-     * @return bool
-     * @throws \Exception
-     */
-    public function setAccess($obj) : bool {
-        $newAccessGranted = false;
-
-        if($obj instanceof CharacterModel){
-            // check whether the user has already map access
-            $result = $this->relFindOne('mapCharacters', self::getFilter('characterId', $obj->_id));
-            if(!$result){
-                // grant access for the character
-                $characterMap = self::getNew('CharacterMapModel');
-                $characterMap->characterId = $obj;
-                $characterMap->mapId = $this;
-                if($characterMap->save()){
-                    $newAccessGranted = true;
-                }
-            }
-        }elseif($obj instanceof CorporationModel){
-            // check whether the corporation already has map access
-            $result = $this->relFindOne('mapCorporations', self::getFilter('corporationId', $obj->_id));
-            if(!$result){
-                // grant access for this corporation
-                $corporationMap = self::getNew('CorporationMapModel');
-                $corporationMap->corporationId = $obj;
-                $corporationMap->mapId = $this;
-                if($corporationMap->save()){
-                    $newAccessGranted = true;
-                }
-            }
-        }elseif($obj instanceof AllianceModel){
-            // check whether the alliance already has map access
-            $result = $this->relFindOne('mapAlliances', self::getFilter('allianceId', $obj->_id));
-            if(!$result){
-                $allianceMap = self::getNew('AllianceMapModel');
-                $allianceMap->allianceId = $obj;
-                $allianceMap->mapId = $this;
-                if($allianceMap->save()){
-                    $newAccessGranted = true;
-                }
-            }
-        }
-        return $newAccessGranted;
-    }
 
     /**
      * checks whether a character has access to this map or not
@@ -743,65 +681,6 @@ class MapModel extends AbstractMapTrackingModel {
     }
 
     /**
-     * get all (private) characters for this map
-     * @return CharacterModel[]
-     */
-    private function getCharacters(){
-        $characters = [];
-        $filter = ['active = ?', 1];
-
-        $this->filter('mapCharacters', $filter);
-
-        if($this->mapCharacters){
-            foreach($this->mapCharacters as $characterMapModel){
-                $characters[] = $characterMapModel->characterId;
-            }
-        }
-
-        return $characters;
-    }
-
-    /**
-     * get corporations that have access to this map
-     * @return CorporationModel[]
-     */
-    private function getCorporations() : array {
-        $corporations = [];
-
-        if($this->isCorporation()){
-            $this->filter('mapCorporations', ['active = ?', 1]);
-
-            if($this->mapCorporations){
-                foreach($this->mapCorporations as $mapCorporation){
-                    $corporations[$mapCorporation->corporationId->_id] = $mapCorporation->corporationId;
-                }
-            }
-        }
-
-        return $corporations;
-    }
-
-    /**
-     * get alliances that have access to this map
-     * @return AllianceModel[]
-     */
-    public function getAlliances() : array {
-        $alliances = [];
-
-        if($this->isAlliance()){
-            $this->filter('mapAlliances', ['active = ?', 1]);
-
-            if($this->mapAlliances){
-                foreach($this->mapAlliances as $mapAlliance){
-                    $alliances[] = $mapAlliance->allianceId;
-                }
-            }
-        }
-
-        return $alliances;
-    }
-
-    /**
      * get all character models that are currently online "viewing" this map
      * @param array $options filter options
      * @return CharacterModel[]
@@ -810,23 +689,13 @@ class MapModel extends AbstractMapTrackingModel {
         $characters = [];
 
         if($this->isPrivate()){
-            // add active character for each user
-            foreach($this->getCharacters() as $character){
+            $characters[] = $this->createdCharacterId;
+        } else if ($this->isShared()) {
+            $query = (new CharacterModel)->find(['active = 1']);
+            foreach ($query as $character) {
                 $characters[] = $character;
             }
-        }elseif($this->isCorporation()){
-            $corporations = $this->getCorporations();
-
-            foreach($corporations as $corporation){
-                $characters = array_merge($characters, $corporation->getCharacters([], $options));
-            }
-        }elseif($this->isAlliance()){
-            $alliances = $this->getAlliances();
-
-            foreach($alliances as $alliance){
-                $characters = array_merge($characters, $alliance->getCharacters([], $options));
-            }
-        }
+       }
 
         return $characters;
     }
@@ -859,42 +728,6 @@ class MapModel extends AbstractMapTrackingModel {
         return $charactersData;
     }
 
-    /**
-     * get all corporations that have access
-     * -> for private maps -> get corporations from characters
-     * -> for corporation maps -> get corporations
-     * -> for alliance maps -> get corporations from alliances
-     * @return CorporationModel[]
-     */
-    public function getAllCorporations() : array {
-        $corporations = [];
-
-        if($this->isPrivate()){
-            foreach($this->getCharacters() as $character){
-                if(
-                    $character->hasCorporation() &&
-                    !array_key_exists($character->get('corporationId', true), $corporations)
-                ){
-                    $corporations[$character->getCorporation()->_id] = $character->getCorporation();
-                }
-            }
-        }elseif($this->isCorporation()){
-            $corporations = $this->getCorporations();
-        }elseif($this->isAlliance()){
-            foreach($this->getAlliances() as $alliance){
-                foreach($alliance->getCharacters() as $character){
-                    if(
-                        $character->hasCorporation() &&
-                        !array_key_exists($character->get('corporationId', true), $corporations)
-                    ){
-                        $corporations[$character->getCorporation()->_id] = $character->getCorporation();
-                    }
-                }
-            }
-        }
-
-        return $corporations;
-    }
 
     /**
      * @param string $action
@@ -1138,15 +971,15 @@ class MapModel extends AbstractMapTrackingModel {
      * @return bool
      */
     public function isPrivate() : bool {
-        return ($this->shareMap == false);
+        return ($this->typeId->name == 'private');
     }
 
     /**
      * checks whether this map is corporation map
      * @return bool
      */
-    public function isPublic() : bool {
-        return ($this->shareMap == true);
+    public function isShared() : bool {
+        return ($this->typeId->name == 'shared');
     }
 
     /**
