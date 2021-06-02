@@ -636,7 +636,7 @@ class MapModel extends AbstractMapTrackingModel {
      */
     public function getStructuresData(int $systemId) : array {
         $structuresData = [];
-        $corporations = $this->getAllCorporations();
+        $corporations = []; // $this->getAllCorporations();
 
         foreach($corporations as $corporation){
             // corporations should be unique
